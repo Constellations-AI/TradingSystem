@@ -54,6 +54,15 @@ export const CandlestickChart = () => {
             tick={{ fill: 'hsl(var(--chart-text))', fontSize: 12 }}
             tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
           />
+          <YAxis 
+            yAxisId="volume"
+            orientation="right"
+            domain={[0, 'dataMax']}
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: 'hsl(var(--chart-text))', fontSize: 10 }}
+            tickFormatter={(value) => `${Math.round(value)}`}
+          />
           <Tooltip 
             contentStyle={{
               backgroundColor: 'hsl(var(--card))',
