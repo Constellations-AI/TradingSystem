@@ -9,6 +9,7 @@ interface Trader {
 
 interface PortfolioTableProps {
   traders: Trader[];
+  traderId?: number; // Optional: if provided, filter by this trader
 }
 
 const generatePortfolioData = () => {
@@ -40,8 +41,9 @@ const generatePortfolioData = () => {
   return data;
 };
 
-export const PortfolioTable = ({ traders }: PortfolioTableProps) => {
+export const PortfolioTable = ({ traders, traderId }: PortfolioTableProps) => {
   const portfolioData = generatePortfolioData();
+  const filteredData = traderId ? portfolioData.filter(item => item.traderId === traderId) : portfolioData;
 
   const getTraderName = (traderId: number) => {
     return traders.find(t => t.id === traderId)?.name || 'Unknown';
@@ -59,7 +61,7 @@ export const PortfolioTable = ({ traders }: PortfolioTableProps) => {
         <TableHeader>
           <TableRow className="border-border">
             <TableHead className="text-muted-foreground">Symbol</TableHead>
-            <TableHead className="text-muted-foreground">Trader</TableHead>
+            {!traderId && <TableHead className="text-muted-foreground">Trader</TableHead>}
             <TableHead className="text-muted-foreground text-right">Quantity</TableHead>
             <TableHead className="text-muted-foreground text-right">Avg Price</TableHead>
             <TableHead className="text-muted-foreground text-right">Current Price</TableHead>
@@ -68,14 +70,16 @@ export const PortfolioTable = ({ traders }: PortfolioTableProps) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {portfolioData.map((row) => (
+          {filteredData.map((row) => (
             <TableRow key={row.id} className="border-border hover:bg-muted/50">
               <TableCell className="font-medium text-foreground">{row.symbol}</TableCell>
-              <TableCell>
-                <Badge variant="outline" className={`${getTraderColor(row.traderId)} text-white border-none`}>
-                  {getTraderName(row.traderId)}
-                </Badge>
-              </TableCell>
+              {!traderId && (
+                <TableCell>
+                  <Badge variant="outline" className={`${getTraderColor(row.traderId)} text-white border-none`}>
+                    {getTraderName(row.traderId)}
+                  </Badge>
+                </TableCell>
+              )}
               <TableCell className="text-right text-foreground">{row.quantity}</TableCell>
               <TableCell className="text-right text-foreground">${row.avgPrice}</TableCell>
               <TableCell className="text-right text-foreground">${row.currentPrice}</TableCell>

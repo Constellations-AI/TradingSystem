@@ -6,9 +6,9 @@ import { TradingHistoryTable } from "./TradingHistoryTable";
 
 export const TradingDashboard = () => {
   const traders = [
-    { id: 1, name: "Alex Chen", color: "trading-blue" },
-    { id: 2, name: "Sarah Kim", color: "trading-yellow" },
-    { id: 3, name: "Marcus Johnson", color: "trading-purple" }
+    { id: 1, name: "Warren", color: "trading-blue" },
+    { id: 2, name: "Cathie", color: "trading-yellow" },
+    { id: 3, name: "Flash", color: "trading-purple" }
   ];
 
   return (
@@ -36,39 +36,41 @@ export const TradingDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Trader Performance Charts */}
+        {/* Trader Performance Charts with Individual Portfolio and Trading History */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {traders.map((trader) => (
-            <Card key={trader.id} className="bg-card border-border shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-lg text-card-foreground">{trader.name} Performance</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <TraderPerformanceChart traderId={trader.id} color={trader.color} />
-              </CardContent>
-            </Card>
+            <div key={trader.id} className="space-y-6">
+              {/* Trader Performance Chart */}
+              <Card className="bg-card border-border shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-lg text-card-foreground">{trader.name} Performance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TraderPerformanceChart traderId={trader.id} color={trader.color} />
+                </CardContent>
+              </Card>
+
+              {/* Individual Portfolio Table */}
+              <Card className="bg-card border-border shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-lg text-card-foreground">{trader.name}'s Portfolio</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <PortfolioTable traders={traders} traderId={trader.id} />
+                </CardContent>
+              </Card>
+
+              {/* Individual Trading History Table */}
+              <Card className="bg-card border-border shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-lg text-card-foreground">{trader.name}'s Trading History</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TradingHistoryTable traders={traders} traderId={trader.id} />
+                </CardContent>
+              </Card>
+            </div>
           ))}
-        </div>
-
-        {/* Portfolio and Trading History */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <Card className="bg-card border-border shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl text-card-foreground">Current Portfolio</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PortfolioTable traders={traders} />
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl text-card-foreground">Trading History (Last 2 Weeks)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <TradingHistoryTable traders={traders} />
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

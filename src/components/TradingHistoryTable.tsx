@@ -9,6 +9,7 @@ interface Trader {
 
 interface TradingHistoryTableProps {
   traders: Trader[];
+  traderId?: number; // Optional: if provided, filter by this trader
 }
 
 const generateTradingHistory = () => {
@@ -41,8 +42,9 @@ const generateTradingHistory = () => {
   return data.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 };
 
-export const TradingHistoryTable = ({ traders }: TradingHistoryTableProps) => {
+export const TradingHistoryTable = ({ traders, traderId }: TradingHistoryTableProps) => {
   const tradingHistory = generateTradingHistory();
+  const filteredHistory = traderId ? tradingHistory.filter(trade => trade.traderId === traderId) : tradingHistory;
 
   const getTraderName = (traderId: number) => {
     return traders.find(t => t.id === traderId)?.name || 'Unknown';
@@ -71,7 +73,7 @@ export const TradingHistoryTable = ({ traders }: TradingHistoryTableProps) => {
             <TableHead className="text-muted-foreground">Date/Time</TableHead>
             <TableHead className="text-muted-foreground">Symbol</TableHead>
             <TableHead className="text-muted-foreground">Side</TableHead>
-            <TableHead className="text-muted-foreground">Trader</TableHead>
+            {!traderId && <TableHead className="text-muted-foreground">Trader</TableHead>}
             <TableHead className="text-muted-foreground text-right">Quantity</TableHead>
             <TableHead className="text-muted-foreground text-right">Price</TableHead>
             <TableHead className="text-muted-foreground text-right">Total</TableHead>
@@ -79,7 +81,7 @@ export const TradingHistoryTable = ({ traders }: TradingHistoryTableProps) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tradingHistory.map((trade) => (
+          {filteredHistory.map((trade) => (
             <TableRow key={trade.id} className="border-border hover:bg-muted/50">
               <TableCell className="text-foreground text-sm">
                 {formatDateTime(trade.timestamp)}
@@ -93,11 +95,13 @@ export const TradingHistoryTable = ({ traders }: TradingHistoryTableProps) => {
                   {trade.side}
                 </Badge>
               </TableCell>
-              <TableCell>
-                <Badge variant="outline" className={`${getTraderColor(trade.traderId)} text-white border-none`}>
-                  {getTraderName(trade.traderId)}
-                </Badge>
-              </TableCell>
+              {!traderId && (
+                <TableCell>
+                  <Badge variant="outline" className={`${getTraderColor(trade.traderId)} text-white border-none`}>
+                    {getTraderName(trade.traderId)}
+                  </Badge>
+                </TableCell>
+              )}
               <TableCell className="text-right text-foreground">{trade.quantity}</TableCell>
               <TableCell className="text-right text-foreground">${trade.price}</TableCell>
               <TableCell className="text-right text-foreground">${trade.total}</TableCell>
