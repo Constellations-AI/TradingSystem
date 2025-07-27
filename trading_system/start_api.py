@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Quick start script for the Trading System API
+Version 2.0 - Fixed dependency installation
 """
 import os
 import sys
