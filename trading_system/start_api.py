@@ -10,14 +10,25 @@ import subprocess
 try:
     import fastapi
     import uvicorn
+    print("✅ FastAPI dependencies found")
 except ImportError:
     print("🔧 Installing missing dependencies...")
     subprocess.check_call([sys.executable, "-m", "pip", "install", "fastapi", "uvicorn", "aiofiles"])
+    print("✅ Dependencies installed")
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from api_server import app
-import uvicorn
+# Import after ensuring dependencies are installed
+try:
+    from api_server import app
+    import uvicorn
+    print("✅ Successfully imported FastAPI app")
+except ImportError as e:
+    print(f"❌ Still can't import: {e}")
+    print("🔧 Trying one more install...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "--force-reinstall", "fastapi", "uvicorn", "aiofiles"])
+    from api_server import app
+    import uvicorn
 
 if __name__ == "__main__":
     # Use Railway's PORT environment variable, fallback to 8000
