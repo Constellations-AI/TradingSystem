@@ -4,6 +4,16 @@ Quick start script for the Trading System API
 """
 import os
 import sys
+import subprocess
+
+# Force install dependencies if not available
+try:
+    import fastapi
+    import uvicorn
+except ImportError:
+    print("🔧 Installing missing dependencies...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "fastapi", "uvicorn", "aiofiles"])
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from api_server import app
