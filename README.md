@@ -56,7 +56,3 @@ BRAVE_API_KEY=your_brave_search_key
 ## Disclaimer
 
 This trading system is a personal research experiment designed to explore multi-agent AI coordination and decision-making frameworks. It has no affiliation with the trading personalities depicted and provides no investment recommendations. The algorithms are continuously evolving as part of ongoing research.
-
----
-
-**Founded by Dr. Joanne Lo** - Former CTO of Special Operations Command, Pacific (SOCPAC) and CEO of Elysian Labs.
