@@ -22,7 +22,13 @@ app = FastAPI(title="Trading System API", version="1.0.0")
 # CORS middleware for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080", "http://localhost:8081", "http://localhost:3000"],  # React dev servers
+    allow_origins=[
+        "http://localhost:8080", 
+        "http://localhost:8081", 
+        "http://localhost:3000",
+        "https://www.constellationsai.com",
+        "https://constellationsai.com"
+    ],  # React dev servers + production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

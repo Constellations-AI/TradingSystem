@@ -10,18 +10,22 @@ from api_server import app
 import uvicorn
 
 if __name__ == "__main__":
+    # Use Railway's PORT environment variable, fallback to 8000
+    port = int(os.getenv("PORT", 8000))
+    
     print("🚀 Starting Trading System API...")
-    print("📊 React frontend should connect to: http://localhost:8000")
-    print("📝 API docs at: http://localhost:8000/docs")
+    print(f"📊 React frontend should connect to: http://localhost:{port}")
+    print(f"📝 API docs at: http://localhost:{port}/docs")
     print("💡 Test endpoints:")
-    print("   - http://localhost:8000/api/traders")
-    print("   - http://localhost:8000/api/market/SPY")
-    print("   - http://localhost:8000/api/traders/warren/portfolio")
-    print("   - http://localhost:8000/api/summary")
+    print(f"   - http://localhost:{port}/api/traders")
+    print(f"   - http://localhost:{port}/api/market/SPY")
+    print(f"   - http://localhost:{port}/api/traders/warren/portfolio")
+    print(f"   - http://localhost:{port}/api/summary")
     print("")
     
     try:
-        # Fix the reload warning by using string import
-        uvicorn.run("api_server:app", host="0.0.0.0", port=8000, reload=True)
+        # Don't use reload in production
+        reload = os.getenv("RAILWAY_ENVIRONMENT_NAME") is None
+        uvicorn.run("api_server:app", host="0.0.0.0", port=port, reload=reload)
     except KeyboardInterrupt:
         print("\n👋 API server stopped")

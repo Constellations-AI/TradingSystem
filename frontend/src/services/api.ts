@@ -2,7 +2,9 @@
  * API client for Trading System backend
  */
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://trading-system-production.up.railway.app' 
+  : 'http://localhost:8000';
 
 export interface Trader {
   id: number;
