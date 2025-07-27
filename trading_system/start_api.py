@@ -6,35 +6,44 @@ import os
 import sys
 import subprocess
 
-# Force install dependencies if not available
-try:
-    import fastapi
-    import uvicorn
-    print("✅ FastAPI dependencies found")
-except ImportError:
-    print("🔧 Installing missing dependencies...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "fastapi", "uvicorn", "aiofiles"])
-    print("✅ Dependencies installed")
+def ensure_dependencies():
+    """Ensure FastAPI dependencies are installed before importing anything"""
+    try:
+        import fastapi
+        import uvicorn
+        print("✅ FastAPI dependencies found")
+        return True
+    except ImportError:
+        print("🔧 Installing missing dependencies...")
+        try:
+            subprocess.check_call([
+                sys.executable, "-m", "pip", "install", 
+                "fastapi>=0.104.0", "uvicorn>=0.24.0", "aiofiles"
+            ])
+            print("✅ Dependencies installed")
+            # Test import after installation
+            import fastapi
+            import uvicorn
+            return True
+        except Exception as e:
+            print(f"❌ Failed to install dependencies: {e}")
+            return False
 
+# Ensure dependencies before doing ANY imports
+if not ensure_dependencies():
+    print("❌ Cannot proceed without FastAPI dependencies")
+    sys.exit(1)
+
+# Now safely import our API server
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Import after ensuring dependencies are installed
 try:
     from api_server import app
+    import uvicorn
     print("✅ Successfully imported FastAPI app")
 except ImportError as e:
-    print(f"❌ Still can't import: {e}")
-    print("🔧 Trying one more install...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "--force-reinstall", "fastapi>=0.104.0", "uvicorn>=0.24.0", "aiofiles"])
-    # Force reload modules
-    import importlib
-    import sys
-    if 'api_server' in sys.modules:
-        importlib.reload(sys.modules['api_server'])
-    from api_server import app
-
-# Import uvicorn separately to avoid conflicts
-import uvicorn
+    print(f"❌ Failed to import api_server: {e}")
+    sys.exit(1)
 
 if __name__ == "__main__":
     # Use Railway's PORT environment variable, fallback to 8000
@@ -52,7 +61,7 @@ if __name__ == "__main__":
     
     try:
         # Don't use reload in production
-        reload = os.getenv("RAILWAY_ENVIRONMENT_NAME") is None
-        uvicorn.run("api_server:app", host="0.0.0.0", port=port, reload=reload)
+        reload = os.getenv("RAILWAY_ENVIRONMENT_NAME") is None and os.getenv("RENDER") is None
+        uvicorn.run(app, host="0.0.0.0", port=port, reload=reload)
     except KeyboardInterrupt:
         print("\n👋 API server stopped")
