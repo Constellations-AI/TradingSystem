@@ -82,12 +82,27 @@ async def debug_database():
         except Exception as e:
             tables_info["error"] = str(e)
     
+    # Also check trader_accounts data
+    trader_data = {}
+    if db_exists and "trader_accounts" in tables_info:
+        try:
+            conn = sqlite3.connect("trading_system.db")
+            cursor = conn.cursor()
+            cursor.execute("SELECT trader_name, balance, holdings FROM trader_accounts")
+            rows = cursor.fetchall()
+            for row in rows:
+                trader_data[row[0]] = {"balance": row[1], "holdings": row[2]}
+            conn.close()
+        except Exception as e:
+            trader_data["error"] = str(e)
+    
     return {
         "database_exists": db_exists,
         "database_size_bytes": db_size,
         "working_directory": os.getcwd(),
         "files_in_directory": os.listdir("."),
-        "tables": tables_info
+        "tables": tables_info,
+        "trader_data": trader_data
     }
 
 @app.get("/api/traders")
