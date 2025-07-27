@@ -209,6 +209,8 @@ const LandingPage = () => {
                   <div className="flex flex-wrap gap-2 mb-6">
                     <Badge className="bg-cosmic text-foreground">Ph.D. Electrical Engineering and Computer Sciences</Badge>
                     <Badge className="bg-cosmic text-foreground">UC Berkeley '16</Badge>
+                    <Badge className="bg-cosmic text-foreground">B.S. Biomedical Engineering</Badge>
+                    <Badge className="bg-cosmic text-foreground">UC Davis '08</Badge>
                     <Badge className="bg-cosmic text-foreground">16+ Years Experience</Badge>
                   </div>
                 </div>
