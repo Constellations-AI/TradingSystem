@@ -51,6 +51,45 @@ async def root():
     """Health check endpoint"""
     return {"message": "Trading System API is running", "timestamp": datetime.now().isoformat()}
 
+@app.get("/debug/database")
+async def debug_database():
+    """Debug endpoint to check database status"""
+    import os
+    import sqlite3
+    
+    # Check if database file exists
+    db_exists = os.path.exists("trading_system.db")
+    db_size = os.path.getsize("trading_system.db") if db_exists else 0
+    
+    # Check tables and row counts
+    tables_info = {}
+    if db_exists:
+        try:
+            conn = sqlite3.connect("trading_system.db")
+            cursor = conn.cursor()
+            
+            # Get all tables
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            tables = cursor.fetchall()
+            
+            for table in tables:
+                table_name = table[0]
+                cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+                count = cursor.fetchone()[0]
+                tables_info[table_name] = count
+                
+            conn.close()
+        except Exception as e:
+            tables_info["error"] = str(e)
+    
+    return {
+        "database_exists": db_exists,
+        "database_size_bytes": db_size,
+        "working_directory": os.getcwd(),
+        "files_in_directory": os.listdir("."),
+        "tables": tables_info
+    }
+
 @app.get("/api/traders")
 async def get_traders():
     """Get list of all traders"""
