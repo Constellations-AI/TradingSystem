@@ -3,7 +3,7 @@
  */
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://tradingsystem-lccs.onrender.com' 
+  ? 'https://tradingsystem-production.up.railway.app' 
   : 'http://localhost:8000';
 
 export interface Trader {
