@@ -206,12 +206,18 @@ const LandingPage = () => {
                   <h3 className="text-3xl font-bold text-foreground mb-2">Dr. Joanne Lo</h3>
                   <p className="text-xl text-stellar font-medium mb-4">Chief Architect</p>
                   
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    <Badge className="bg-cosmic text-foreground">Ph.D. Electrical Engineering and Computer Sciences</Badge>
-                    <Badge className="bg-cosmic text-foreground">UC Berkeley '16</Badge>
-                    <Badge className="bg-cosmic text-foreground">B.S. Biomedical Engineering</Badge>
-                    <Badge className="bg-cosmic text-foreground">UC Davis '08</Badge>
-                    <Badge className="bg-cosmic text-foreground">16+ Years Experience</Badge>
+                  <div className="space-y-2 mb-6">
+                    <div className="flex flex-wrap gap-2">
+                      <Badge className="bg-cosmic text-foreground">16+ Years Experience</Badge>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge className="bg-cosmic text-foreground">Ph.D. Electrical Engineering and Computer Sciences</Badge>
+                      <Badge className="bg-cosmic text-foreground">UC Berkeley '16</Badge>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge className="bg-cosmic text-foreground">B.S. Biomedical Engineering</Badge>
+                      <Badge className="bg-cosmic text-foreground">UC Davis '08</Badge>
+                    </div>
                   </div>
                 </div>
                 
