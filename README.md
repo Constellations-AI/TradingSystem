@@ -1,73 +1,62 @@
-# Welcome to your Lovable project
+# Constellations AI
 
-## Project info
+**Intelligence, orchestrated.**
 
-**URL**: https://lovable.dev/projects/a0f26d0c-47bd-483c-9413-c29558af7ae0
+We specialize in orchestrating autonomous agents that operate with memory, context, and purpose. At Constellations AI, our focus is on the architecture layer that enables agents to collaborate, adapt, and act intelligently across domains.
 
-## How can I edit this code?
+## Portfolio Projects
 
-There are several ways of editing your application.
+### Multi-Agent Trading System
+A sophisticated trading platform featuring autonomous AI agents with distinct trading personalities. Each agent combines technical analysis with LLM-based reasoning to interpret market data, news sentiment, and macroeconomic trends. The system demonstrates real-time multi-agent coordination and decision-making in financial markets.
 
-**Use Lovable**
+**Tech Stack:** Python, FastAPI, React, TypeScript, OpenAI GPT-4, LangChain, Polygon API, SQLite
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/a0f26d0c-47bd-483c-9413-c29558af7ae0) and start prompting.
+### Digital Twin Assistant (Coming Soon)
+A fine-tuned personal assistant designed for secure environments, featuring federated learning and dual-memory architecture for air-gapped deployments.
 
-Changes made via Lovable will be committed automatically to this repo.
+### Course of Action Generation (Coming Soon)
+Unity-based simulation framework for autonomous behavior across multiple domains using reinforcement learning and hybrid A* path planning.
 
-**Use your preferred IDE**
+## Project Structure
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+```
+├── frontend/           # React TypeScript application
+├── trading_system/     # Python backend with trading agents
+├── README.md          # This file
+└── .gitignore         # Git ignore rules
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Getting Started
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### Frontend (React App)
+```bash
+cd frontend
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Backend (Trading System)
+```bash
+cd trading_system
+pip install -r requirements.txt
+python api_server.py
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Environment Variables Required
 
-**Use GitHub Codespaces**
+Create a `.env` file in the `trading_system/` directory with:
+```
+OPENAI_API_KEY=your_openai_key
+POLYGON_API_KEY=your_polygon_key
+ALPHAVANTAGE_API_KEY=your_alpha_vantage_key
+ANTHROPIC_API_KEY=your_anthropic_key
+BRAVE_API_KEY=your_brave_search_key
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Disclaimer
 
-## What technologies are used for this project?
+This trading system is a personal research experiment designed to explore multi-agent AI coordination and decision-making frameworks. It has no affiliation with the trading personalities depicted and provides no investment recommendations. The algorithms are continuously evolving as part of ongoing research.
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/a0f26d0c-47bd-483c-9413-c29558af7ae0) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+**Founded by Dr. Joanne Lo** - Former CTO of Special Operations Command, Pacific (SOCPAC) and CEO of Elysian Labs.

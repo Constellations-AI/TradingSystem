@@ -1,0 +1,7 @@
+openai
+requests
+streamlit
+plotly
+pandas
+numpy
+python-dotenv
