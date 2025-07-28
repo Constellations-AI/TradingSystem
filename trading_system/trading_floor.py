@@ -588,21 +588,41 @@ Make only ONE decision per response. Focus on quality over quantity.
     async def run(self) -> str:
         """Run one trading cycle for this trader"""
         try:
-            # Check if Warren or Camillo need to build their portfolios
-            if self.name in ['warren', 'camillo'] and self.needs_portfolio_building():
-                return await self.run_portfolio_building_cycle()
+            # Check if any trader needs to build their portfolios
+            if self.needs_portfolio_building():
+                # Warren and Camillo get dedicated building cycles
+                if self.name in ['warren', 'camillo']:
+                    return await self.run_portfolio_building_cycle()
+                
+                # Pavel gets forced trading when portfolio building needed
+                elif self.name == 'pavel':
+                    print(f"🏗️ {self.name.title()}: Portfolio building needed - forcing trade")
+                    is_rebalancing = should_rebalance_now(self.name)
+                    should_trade = True  # Force trading for portfolio building
+                    
+                    action_type = "rebalancing" if is_rebalancing else "portfolio_building"
+                    print(f"🔄 {self.name.title()} {action_type}...")
+                    
+                    # Setup agents if not already done
+                    await self.setup_agents()
+                    
+                    # Make and execute decision
+                    print(f"🧠 {self.name.title()} making decision...")
+                    decision = await self.make_trading_decision(is_rebalancing)
+                    print(f"📊 {self.name.title()} decision: {decision.get('decision', 'UNKNOWN')} - {decision.get('symbol', 'N/A')}")
+                    
+                    print(f"⚡ {self.name.title()} executing trade...")
+                    result = await self.execute_decision(decision)
+                    print(f"✅ {self.name.title()} result: {result}")
+                    
+                    return f"{self.name}: Portfolio building - {result}"
             
-            # Normal trading/rebalancing logic for everyone else, or when portfolios are complete
+            # Normal trading/rebalancing logic for complete portfolios
             is_rebalancing = should_rebalance_now(self.name)
             should_trade = should_trade_now(self.name)
             
             if not (is_rebalancing or should_trade):
-                # Force trading if portfolio is empty (starting position)
-                if len(self.account.holdings) == 0 and self.account.balance > 1000:
-                    should_trade = True
-                    print(f"🎯 {self.name.title()}: Forcing trade - portfolio is empty with ${self.account.balance:,.2f} cash")
-                else:
-                    return f"{self.name}: Not scheduled to trade/rebalance at this time"
+                return f"{self.name}: Not scheduled to trade/rebalance at this time"
             
             action_type = "rebalancing" if is_rebalancing else "trading"
             print(f"🔄 {self.name.title()} {action_type}...")
@@ -641,6 +661,14 @@ async def run_trading_cycle():
     
     # Create all traders
     traders = create_traders()
+    
+    # Update portfolio value time series for all traders (for graph accuracy)
+    print("📊 Updating portfolio values for performance tracking...")
+    for trader in traders:
+        try:
+            trader.account.update_portfolio_value_series()
+        except Exception as e:
+            print(f"⚠️ Error updating portfolio value for {trader.name}: {e}")
     
     # Run all traders in parallel (restored from before sequential fix)
     print("🤖 Starting all traders in parallel...")

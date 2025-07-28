@@ -145,7 +145,9 @@ class Account(BaseModel):
             portfolio_value_time_series=[]
         )
         
-        account.save()  # Save the new account
+        # Add initial portfolio value entry for performance tracking
+        account.update_portfolio_value_series()
+        
         return account
     
     def save(self):
@@ -299,6 +301,16 @@ class Account(BaseModel):
     def list_transactions(self):
         """ List all transactions made by the user. """
         return [transaction.model_dump() for transaction in self.transactions]
+    
+    def update_portfolio_value_series(self):
+        """Update portfolio value time series without full report"""
+        portfolio_value = self.calculate_portfolio_value()
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Avoid duplicate timestamps (only update if time changed)
+        if not self.portfolio_value_time_series or self.portfolio_value_time_series[-1][0] != timestamp:
+            self.portfolio_value_time_series.append((timestamp, portfolio_value))
+            self.save()
     
     def report(self) -> str:
         """ Return a JSON string representing the account. """
