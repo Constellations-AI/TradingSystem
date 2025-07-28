@@ -87,30 +87,24 @@ class Account(BaseModel):
         # Use persistent database path
         db = Database(DATABASE_PATH)
         
-        # Create trader_accounts table if it doesn't exist
-        with db.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS trader_accounts (
-                    trader_name TEXT PRIMARY KEY,
-                    balance REAL DEFAULT 10000.0,
-                    strategy TEXT DEFAULT '',
-                    holdings TEXT DEFAULT '{}',
-                    transactions TEXT DEFAULT '[]',
-                    portfolio_history TEXT DEFAULT '[]',
-                    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            ''')
-            conn.commit()
+        # Table creation is now handled by Database.init_database()
+        # No need to create tables here since Database class handles both SQLite and PostgreSQL
         
         # Try to load existing account data
         try:
             with db.get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute(
-                    "SELECT balance, strategy, holdings, transactions, portfolio_history FROM trader_accounts WHERE trader_name = ?",
-                    (name.lower(),)
-                )
+                # Use appropriate parameter style for database type
+                if hasattr(db, 'use_postgresql') and db.use_postgresql:
+                    cursor.execute(
+                        "SELECT balance, strategy, holdings, transactions, portfolio_history FROM trader_accounts WHERE trader_name = %s",
+                        (name.lower(),)
+                    )
+                else:
+                    cursor.execute(
+                        "SELECT balance, strategy, holdings, transactions, portfolio_history FROM trader_accounts WHERE trader_name = ?",
+                        (name.lower(),)
+                    )
                 result = cursor.fetchone()
                 
                 if result:
@@ -160,20 +154,42 @@ class Account(BaseModel):
         try:
             with db.get_connection() as conn:
                 cursor = conn.cursor()
-                # Insert or replace account data
-                cursor.execute('''
-                    INSERT OR REPLACE INTO trader_accounts 
-                    (trader_name, balance, strategy, holdings, transactions, portfolio_history, last_updated)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                ''', (
-                    self.name.lower(),
-                    self.balance,
-                    self.strategy,
-                    json.dumps(self.holdings),
-                    json.dumps(transactions_data),
-                    json.dumps(self.portfolio_value_time_series),
-                    datetime.now().isoformat()
-                ))
+                # Use appropriate upsert syntax for database type
+                if hasattr(db, 'use_postgresql') and db.use_postgresql:
+                    cursor.execute('''
+                        INSERT INTO trader_accounts 
+                        (trader_name, balance, strategy, holdings, transactions, portfolio_history, last_updated)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (trader_name) DO UPDATE SET
+                            balance = EXCLUDED.balance,
+                            strategy = EXCLUDED.strategy,
+                            holdings = EXCLUDED.holdings,
+                            transactions = EXCLUDED.transactions,
+                            portfolio_history = EXCLUDED.portfolio_history,
+                            last_updated = EXCLUDED.last_updated
+                    ''', (
+                        self.name.lower(),
+                        self.balance,
+                        self.strategy,
+                        json.dumps(self.holdings),
+                        json.dumps(transactions_data),
+                        json.dumps(self.portfolio_value_time_series),
+                        datetime.now().isoformat()
+                    ))
+                else:
+                    cursor.execute('''
+                        INSERT OR REPLACE INTO trader_accounts 
+                        (trader_name, balance, strategy, holdings, transactions, portfolio_history, last_updated)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        self.name.lower(),
+                        self.balance,
+                        self.strategy,
+                        json.dumps(self.holdings),
+                        json.dumps(transactions_data),
+                        json.dumps(self.portfolio_value_time_series),
+                        datetime.now().isoformat()
+                    ))
                 conn.commit()
         except Exception as e:
             print(f"Error saving account for {self.name}: {e}")
