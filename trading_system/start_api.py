@@ -68,16 +68,30 @@ if __name__ == "__main__":
         
         def run_trading_floor():
             try:
-                # Import and run trading floor
+                print("🔄 Importing trading floor...")
                 import trading_floor
+                print("📊 Trading floor imported successfully")
+                print("🚀 Starting trading floor main loop...")
                 asyncio.run(trading_floor.main())
+            except ImportError as e:
+                print(f"❌ Import error in trading floor: {e}")
+                import traceback
+                print(f"❌ Import traceback: {traceback.format_exc()}")
             except Exception as e:
-                print(f"❌ Trading floor error: {e}")
+                print(f"❌ Trading floor runtime error: {e}")
+                import traceback
+                print(f"❌ Runtime traceback: {traceback.format_exc()}")
+                # Keep trying every 30 seconds
+                import time
+                time.sleep(30)
+                print("🔄 Retrying trading floor startup...")
+                run_trading_floor()
         
         # Start trading floor in a separate thread
+        print("🧵 Creating trading thread...")
         trading_thread = threading.Thread(target=run_trading_floor, daemon=True)
         trading_thread.start()
-        print("✅ Trading agents started in background")
+        print("✅ Trading thread started, agents should be initializing...")
     
     try:
         # Don't use reload in production
