@@ -119,6 +119,13 @@ class MarketIntelligenceAgent:
     async def run_superstep(self, message, success_criteria, history, debug=False):
         start_time = time.time()
         
+        # Ensure LangSmith tracing is active for this run
+        try:
+            from langsmith_config import ensure_langchain_tracing
+            ensure_langchain_tracing()
+        except Exception as e:
+            print(f"⚠️ LangSmith tracing setup warning: {e}")
+        
         # Generate unique session and thread IDs
         session_id = f"session_{int(time.time())}_{str(uuid.uuid4())[:8]}"
         thread_id = str(uuid.uuid4())

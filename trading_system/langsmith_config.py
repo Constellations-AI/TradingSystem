@@ -51,9 +51,34 @@ def is_langsmith_enabled():
     tracing_enabled = os.getenv("LANGSMITH_TRACING", "false").lower() == "true"
     return api_key is not None and tracing_enabled
 
-# Auto-initialize when module is imported
+def ensure_langchain_tracing():
+    """Ensure LangChain tracing is properly configured"""
+    if is_langsmith_enabled():
+        api_key = os.getenv("LANGSMITH_API_KEY")
+        project = os.getenv("LANGSMITH_PROJECT", "trading-system")
+        endpoint = os.getenv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com")
+        
+        # Force set all required LangChain environment variables
+        os.environ["LANGCHAIN_TRACING_V2"] = "true"
+        os.environ["LANGCHAIN_API_KEY"] = api_key
+        os.environ["LANGCHAIN_PROJECT"] = project
+        os.environ["LANGCHAIN_ENDPOINT"] = endpoint
+        
+        # Additional LangGraph-specific tracing
+        try:
+            from langsmith import Client
+            client = Client(api_key=api_key, api_url=endpoint)
+            print(f"🔍 LangSmith client connected to project: {project}")
+            return True
+        except Exception as e:
+            print(f"⚠️ LangSmith client setup warning: {e}")
+            return False
+    return False
+
+# Auto-initialize when module is imported  
 if __name__ != "__main__":
     if is_langsmith_enabled():
         init_langsmith()
+        ensure_langchain_tracing()
     else:
         print("ℹ️ LangSmith not configured - check LANGSMITH_API_KEY and LANGSMITH_TRACING")

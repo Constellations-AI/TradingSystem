@@ -387,7 +387,14 @@ Make only ONE decision per response. Focus on quality over quantity.
             # Create trading prompt
             prompt = self._create_trade_prompt(market_intel, tech_analysis, is_rebalancing)
             
-            # Get decision from LLM
+            # Ensure LangSmith tracing for OpenAI calls
+            try:
+                from langsmith_config import ensure_langchain_tracing
+                ensure_langchain_tracing()
+            except Exception as e:
+                print(f"⚠️ LangSmith tracing setup warning: {e}")
+            
+            # Get decision from LLM (this should be traced by LangSmith)
             response = await self.openai.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": prompt}],
