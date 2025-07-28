@@ -631,17 +631,12 @@ async def run_trading_cycle():
     # Create all traders
     traders = create_traders()
     
-    # Run traders sequentially with delays to avoid API rate limits
-    results = []
-    for i, trader in enumerate(traders):
-        if i > 0:  # Add delay between traders (except first one)
-            print(f"⏳ Waiting 30 seconds before running {trader.name}...")
-            await asyncio.sleep(30)  # 30 second delay between traders
-        
-        print(f"🤖 Starting {trader.name}...")
-        result = await trader.run()
-        results.append(result)
-        
+    # Run all traders in parallel (restored from before sequential fix)
+    print("🤖 Starting all traders in parallel...")
+    results = await asyncio.gather(*[trader.run() for trader in traders])
+    
+    # Print results
+    for result in results:
         if "Not scheduled" not in result:  # Only print active trading
             print(f"✅ {result}")
 
