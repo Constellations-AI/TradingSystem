@@ -20,17 +20,31 @@ from openai import AsyncOpenAI
 
 load_dotenv(override=True)
 
-# Import configuration - explicitly import from our config.py file
-try:
-    # Try relative import first
-    from .config import RUN_EVERY_N_MINUTES, RUN_EVEN_WHEN_MARKET_IS_CLOSED, FORCE_MARKET_OPEN, REBALANCE_SCHEDULE
-except ImportError:
-    # Fallback to direct import
-    import config as trading_config
+# Import configuration - use absolute path to avoid conflicts
+import os
+import sys
+config_path = os.path.join(os.path.dirname(__file__), 'config.py')
+if os.path.exists(config_path):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("trading_config", config_path)
+    trading_config = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(trading_config)
+    
     RUN_EVERY_N_MINUTES = trading_config.RUN_EVERY_N_MINUTES
     RUN_EVEN_WHEN_MARKET_IS_CLOSED = trading_config.RUN_EVEN_WHEN_MARKET_IS_CLOSED
     FORCE_MARKET_OPEN = trading_config.FORCE_MARKET_OPEN
     REBALANCE_SCHEDULE = trading_config.REBALANCE_SCHEDULE
+else:
+    # Fallback to hardcoded values if config.py not found
+    print("⚠️ config.py not found, using fallback values")
+    RUN_EVERY_N_MINUTES = 5
+    RUN_EVEN_WHEN_MARKET_IS_CLOSED = False
+    FORCE_MARKET_OPEN = True
+    REBALANCE_SCHEDULE = {
+        "warren": "daily",
+        "camillo": "daily", 
+        "pavel": "3x_daily"
+    }
 
 
 def get_eastern_time() -> datetime:
