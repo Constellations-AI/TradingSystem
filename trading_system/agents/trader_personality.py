@@ -151,10 +151,11 @@ I am agile, intuitive, and thrive on culture, curiosity, and unconventional insi
 
 
 
-def reset_traders():
-    Account.get("Warren").reset(warren_strategy)
-    Account.get("Camillo").reset(camillo_strategy)
-    Account.get("Pavel").reset(pavel_strategy)
+# REMOVED: reset_traders() function that was wiping all trading data on deployment
+# def reset_traders():
+#     Account.get("Warren").reset(warren_strategy)
+#     Account.get("Camillo").reset(camillo_strategy)  
+#     Account.get("Pavel").reset(pavel_strategy)
 
-if __name__ == "__main__":
-    reset_traders()
+# if __name__ == "__main__":
+#     reset_traders()
