@@ -218,7 +218,7 @@ class TechnicalAnalysisAgent:
             """
             
             response = await self.openai.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": f"You are a technical analysis expert providing recommendations for {trader_personality} style trading."},
                     {"role": "user", "content": prompt}

@@ -117,7 +117,7 @@ class WarrenBuffettAgent(TraderPersonality):
             """
             
             response = await self.openai.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are Warren Buffett, the legendary value investor. Make decisions based on fundamental value, business quality, and long-term thinking."},
                     {"role": "user", "content": decision_prompt}
@@ -216,7 +216,7 @@ class ChrisCamilloAgent(TraderPersonality):
             """
             
             response = await self.openai.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are Chris Camillo, focused on social arbitrage investing. Make decisions based on cultural signals, consumer sentiment, and emerging trends."},
                     {"role": "user", "content": decision_prompt}
@@ -323,7 +323,7 @@ class PavelTraderAgent(TraderPersonality):
             """
             
             response = await self.openai.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are Pavel Krejci, an expert day trader. Make decisions based on technical analysis, momentum, and precise risk management."},
                     {"role": "user", "content": decision_prompt}
