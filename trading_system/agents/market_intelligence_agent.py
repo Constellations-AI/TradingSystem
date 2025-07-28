@@ -15,6 +15,14 @@ from agents.tools.market_intelligence_tools import market_intelligence_tools
 from agents.eval_agent import build_market_intel_evaluator
 from database import Database
 
+# Initialize LangSmith for tracing
+try:
+    from langsmith_config import init_langsmith, is_langsmith_enabled
+    if is_langsmith_enabled():
+        init_langsmith()
+except ImportError:
+    print("ℹ️ LangSmith not available for market intelligence agent")
+
 DEFAULT_SUCCESS_CRITERIA = "Generate a clear, accurate, and tool-supported market insight that answers the user’s request without making unsupported claims."
 
 class State(TypedDict):
@@ -121,7 +129,10 @@ class MarketIntelligenceAgent:
         self.intel_analyst_llm_with_tools = intel_analyst_llm.bind_tools(self.tools)
         await self.build_graph()
         
-        config = {"configurable": {"thread_id": thread_id}}
+        config = {
+            "configurable": {"thread_id": thread_id},
+            "recursion_limit": 6  # Limit analyst-evaluator loops to 3 iterations (2 nodes each)
+        }
         state = {
             "messages": [HumanMessage(content=message, metadata={"sender": "human_user"})],
             "success_criteria": success_criteria,

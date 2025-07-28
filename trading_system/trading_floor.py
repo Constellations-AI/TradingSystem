@@ -20,6 +20,17 @@ from openai import AsyncOpenAI
 
 load_dotenv(override=True)
 
+# Initialize LangSmith for tracing all trading activity
+try:
+    from langsmith_config import init_langsmith, is_langsmith_enabled
+    if is_langsmith_enabled():
+        init_langsmith()
+        print("✅ LangSmith initialized for trading floor")
+    else:
+        print("ℹ️ LangSmith not configured - check LANGSMITH_API_KEY and LANGSMITH_TRACING")
+except ImportError:
+    print("ℹ️ LangSmith not available for trading floor")
+
 # Import configuration - use absolute path to avoid conflicts
 import os
 import sys

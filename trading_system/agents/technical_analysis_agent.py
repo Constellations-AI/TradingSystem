@@ -1,4 +1,4 @@
-# File: market_intelligence_agent.py
+# File: technical_analysis_agent.py
 from typing import Annotated, List, Any, Optional, Dict
 from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, START, END
@@ -14,6 +14,14 @@ import time
 from agents.tools.technical_analysis_tools import technical_analysis_tools
 # from agents.eval_agent import build_technical_analysis_evaluator  # Temporarily disabled
 from database import Database
+
+# Initialize LangSmith for tracing
+try:
+    from langsmith_config import init_langsmith, is_langsmith_enabled
+    if is_langsmith_enabled():
+        init_langsmith()
+except ImportError:
+    print("ℹ️ LangSmith not available for technical analysis agent")
 
 DEFAULT_SUCCESS_CRITERIA = "Generate a clear, accurate, and tool-supported technical analysis that answers the user's request without making unsupported claims."
 
