@@ -23,10 +23,22 @@ load_dotenv(override=True)
 # Import configuration - use absolute path to avoid conflicts
 import os
 import sys
-config_path = os.path.join(os.path.dirname(__file__), 'config.py')
-if os.path.exists(config_path):
+
+# Debug info for Railway
+current_dir = os.path.dirname(__file__)
+config_py_path = os.path.join(current_dir, 'config.py')
+config_dir_path = os.path.join(current_dir, 'config')
+
+print(f"🔍 Current directory: {current_dir}")
+print(f"🔍 Looking for config.py at: {config_py_path}")
+print(f"🔍 config.py exists: {os.path.exists(config_py_path)}")
+print(f"🔍 config/ directory exists: {os.path.exists(config_dir_path)}")
+print(f"🔍 Files in current dir: {os.listdir(current_dir)}")
+
+if os.path.exists(config_py_path):
+    print("✅ Found config.py, loading it...")
     import importlib.util
-    spec = importlib.util.spec_from_file_location("trading_config", config_path)
+    spec = importlib.util.spec_from_file_location("trading_config", config_py_path)
     trading_config = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(trading_config)
     
@@ -34,9 +46,10 @@ if os.path.exists(config_path):
     RUN_EVEN_WHEN_MARKET_IS_CLOSED = trading_config.RUN_EVEN_WHEN_MARKET_IS_CLOSED
     FORCE_MARKET_OPEN = trading_config.FORCE_MARKET_OPEN
     REBALANCE_SCHEDULE = trading_config.REBALANCE_SCHEDULE
+    print(f"✅ Config loaded: FORCE_MARKET_OPEN={FORCE_MARKET_OPEN}")
 else:
     # Fallback to hardcoded values if config.py not found
-    print("⚠️ config.py not found, using fallback values")
+    print("❌ config.py not found, using fallback values")
     RUN_EVERY_N_MINUTES = 5
     RUN_EVEN_WHEN_MARKET_IS_CLOSED = False
     FORCE_MARKET_OPEN = True
@@ -45,6 +58,7 @@ else:
         "camillo": "daily", 
         "pavel": "3x_daily"
     }
+    print(f"⚠️ Using fallback: FORCE_MARKET_OPEN={FORCE_MARKET_OPEN}")
 
 
 def get_eastern_time() -> datetime:
