@@ -1,0 +1,12 @@
+[build]
+builder = "dockerfile"
+
+[deploy]
+healthcheckPath = "/api/summary"
+healthcheckTimeout = 300
+restartPolicyType = "always"
+
+# Mount persistent volume for database
+[[deploy.volumes]]
+mountPath = "/data"
+name = "trading-db-volume"

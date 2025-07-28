@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 from data.polygon import PolygonClient
 from database import Database
+from db_config import DATABASE_PATH
 
 load_dotenv(override=True)
 
@@ -83,8 +84,8 @@ class Account(BaseModel):
 
     @classmethod
     def get(cls, name: str):
-        # Use shared trading_system.db database
-        db = Database("trading_system.db")
+        # Use persistent database path
+        db = Database(DATABASE_PATH)
         
         # Create trader_accounts table if it doesn't exist
         with db.get_connection() as conn:
@@ -148,8 +149,8 @@ class Account(BaseModel):
         return account
     
     def save(self):
-        # Save account data to shared trading_system.db
-        db = Database("trading_system.db")
+        # Save account data to persistent database
+        db = Database(DATABASE_PATH)
         
         # Convert transactions to JSON-serializable format
         transactions_data = [t.model_dump() for t in self.transactions]

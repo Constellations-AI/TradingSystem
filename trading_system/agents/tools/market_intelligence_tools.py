@@ -10,6 +10,7 @@ from langchain_core.tools import tool
 
 from data.alpha_vantage import AlphaVantageClient
 from database import Database
+from db_config import DATABASE_PATH
 
 load_dotenv(override=True)
 
@@ -22,7 +23,7 @@ class MarketIntelligenceTools:
 
     @classmethod
     async def create(cls, session_id: str = None):
-        db = Database()
+        db = Database(DATABASE_PATH)
         alpha = AlphaVantageClient(db_path=db.db_path)
         return cls(alpha, db, session_id)
     

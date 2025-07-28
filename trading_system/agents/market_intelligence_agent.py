@@ -14,6 +14,7 @@ import time
 from agents.tools.market_intelligence_tools import market_intelligence_tools
 from agents.eval_agent import build_market_intel_evaluator
 from database import Database
+from db_config import DATABASE_PATH
 
 # Initialize LangSmith for tracing
 try:
@@ -33,14 +34,14 @@ class State(TypedDict):
     user_input_needed: bool
 
 class MarketIntelligenceAgent:
-    def __init__(self, db_path: str = "trading_system.db"):
+    def __init__(self, db_path: str = None):
         self.intel_analyst_llm_with_tools = None
         self.evaluator_llm_with_output = None
         self.tools = None
         self.graph = None
         self.intel_analyst_id = str(uuid.uuid4())
         self.memory = MemorySaver()
-        self.db = Database(db_path)
+        self.db = Database(db_path or DATABASE_PATH)
         self.current_session_id = None
 
     def _ensure_success_criteria(self, state: State) -> State:

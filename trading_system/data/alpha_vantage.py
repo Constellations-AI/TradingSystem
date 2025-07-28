@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
 from database import Database
+from db_config import DATABASE_PATH
 
 # Load environment variables
 load_dotenv(override=True)
@@ -24,14 +25,14 @@ class AlphaVantageClient:
         'TIME_SERIES_DAILY': 3600, # 1 hour
     }
     
-    def __init__(self, api_key: Optional[str] = None, db_path: str = "trading_system.db"):
+    def __init__(self, api_key: Optional[str] = None, db_path: str = None):
         self.api_key = api_key or os.getenv("ALPHAVANTAGE_API_KEY")
         if not self.api_key:
             raise ValueError("Alpha Vantage API key is required")
         
         self.base_url = "https://www.alphavantage.co/query"
         self.session = requests.Session()
-        self.db = Database(db_path)
+        self.db = Database(db_path or DATABASE_PATH)
         self._current_session_data_sources = []  # Track data sources for current operation
         
     def _make_request(self, params: Dict, cache_ttl: Optional[int] = None) -> Tuple[Dict, Dict]:
