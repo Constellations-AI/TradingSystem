@@ -28,6 +28,13 @@ class Database:
         self.database_url = os.getenv("DATABASE_URL")
         self.use_postgresql = bool(self.database_url and HAS_POSTGRESQL)
         
+        # Debug environment variables
+        print(f"🔍 Environment debug:")
+        print(f"   DATABASE_URL present: {bool(self.database_url)}")
+        print(f"   DATABASE_URL value: {self.database_url[:50] + '...' if self.database_url else 'None'}")
+        print(f"   PostgreSQL library available: {HAS_POSTGRESQL}")
+        print(f"   Will use PostgreSQL: {self.use_postgresql}")
+        
         if self.use_postgresql:
             print(f"🐘 Using PostgreSQL database")
         else:
