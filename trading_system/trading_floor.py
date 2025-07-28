@@ -84,15 +84,45 @@ def is_market_open() -> bool:
     if not (9.5 <= current_hour_decimal <= 16.0):  # 9:30 AM to 4:00 PM ET
         return False
     
-    # If we pass basic checks, verify with Polygon API
+    # If we pass basic checks, verify with Polygon API first
     try:
         polygon = PolygonClient()
         market_status = polygon.get_market_status()
-        return market_status.get("market") == "open"
+        is_open = market_status.get("market") == "open"
+        print(f"✅ Polygon API: Market is {'open' if is_open else 'closed'}")
+        return is_open
     except Exception as e:
-        print(f"Error checking market status: {e}")
-        # Conservative approach - if API fails during potential market hours, assume closed
-        return False
+        print(f"❌ Polygon market status failed: {e}")
+        
+        # Fallback to Alpha Vantage
+        try:
+            import requests
+            alphavantage_key = os.getenv("ALPHAVANTAGE_API_KEY")
+            if not alphavantage_key:
+                print("❌ No Alpha Vantage API key found")
+                return False
+                
+            url = f'https://www.alphavantage.co/query?function=MARKET_STATUS&apikey={alphavantage_key}'
+            response = requests.get(url, timeout=10)
+            data = response.json()
+            
+            # Check US market status from Alpha Vantage response
+            markets = data.get("markets", [])
+            for market in markets:
+                if market.get("region") == "United States" and market.get("market_type") == "Equity":
+                    status = market.get("current_status", "closed").lower()
+                    is_open = status == "open"
+                    print(f"✅ Alpha Vantage fallback: US market is {status}")
+                    return is_open
+            
+            print("❌ Alpha Vantage: Could not find US equity market status")
+            return False
+            
+        except Exception as av_error:
+            print(f"❌ Alpha Vantage fallback also failed: {av_error}")
+            # Conservative approach - if both APIs fail during potential market hours, assume closed
+            print("🔒 Both APIs failed, defaulting to market closed for safety")
+            return False
 
 
 def should_trade_now(trader_name: str) -> bool:

@@ -205,15 +205,26 @@ class PolygonClient:
         data, metadata = self._make_request(endpoint, params, cache_ttl=cache_ttl)
         return data
     
+    def get_market_status(self) -> Dict:
+        """Get current market status from Polygon API"""
+        endpoint = "/v1/marketstatus/now"
+        params = {}
+        
+        data, metadata = self._make_request(endpoint, params, cache_ttl=300)  # 5 minute cache
+        return data
+    
     def get_most_active(self, limit: int = 20) -> Dict:
         """Get most active stocks by volume"""
         endpoint = "/v2/snapshot/locale/us/markets/stocks/tickers"
         params = {"sort": "volume", "order": "desc", "limit": limit}
         
-        # Use longer cache when market is closed
-        market_status = self.get_market_status()
-        is_market_open = market_status.get("market") == "open"
-        cache_ttl = 60 if is_market_open else 3600  # 1 minute if open, 1 hour if closed
+        # Use longer cache when market is closed - but avoid circular reference
+        try:
+            market_status = self.get_market_status()
+            is_market_open = market_status.get("market") == "open"
+            cache_ttl = 60 if is_market_open else 3600  # 1 minute if open, 1 hour if closed
+        except:
+            cache_ttl = 60  # Default to shorter cache if market status fails
         
         data, metadata = self._make_request(endpoint, params, cache_ttl=cache_ttl)
         return data
