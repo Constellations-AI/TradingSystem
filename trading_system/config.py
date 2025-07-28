@@ -6,7 +6,7 @@ RUN_EVERY_N_MINUTES = 5  # Check every 5 minutes for Pavel's frequent trading
 RUN_EVEN_WHEN_MARKET_IS_CLOSED = False
 
 # Market override (for testing/portfolio building)
-FORCE_MARKET_OPEN = False  # Only trade during actual market hours
+FORCE_MARKET_OPEN = True  # TEMPORARY: Test if agents come back to life
 
 # Trading schedules for each trader
 REBALANCE_SCHEDULE = {
