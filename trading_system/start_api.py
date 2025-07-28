@@ -60,6 +60,25 @@ if __name__ == "__main__":
     print(f"   - http://localhost:{port}/api/summary")
     print("")
     
+    # Start trading floor in background if in production
+    if os.getenv("RAILWAY_ENVIRONMENT_NAME") or os.getenv("RENDER"):
+        print("🏢 Starting trading agents in background...")
+        import threading
+        import asyncio
+        
+        def run_trading_floor():
+            try:
+                # Import and run trading floor
+                import trading_floor
+                asyncio.run(trading_floor.main())
+            except Exception as e:
+                print(f"❌ Trading floor error: {e}")
+        
+        # Start trading floor in a separate thread
+        trading_thread = threading.Thread(target=run_trading_floor, daemon=True)
+        trading_thread.start()
+        print("✅ Trading agents started in background")
+    
     try:
         # Don't use reload in production
         reload = os.getenv("RAILWAY_ENVIRONMENT_NAME") is None and os.getenv("RENDER") is None
