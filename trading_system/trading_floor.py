@@ -20,8 +20,17 @@ from openai import AsyncOpenAI
 
 load_dotenv(override=True)
 
-# Import configuration
-from config import RUN_EVERY_N_MINUTES, RUN_EVEN_WHEN_MARKET_IS_CLOSED, FORCE_MARKET_OPEN, REBALANCE_SCHEDULE
+# Import configuration - explicitly import from our config.py file
+try:
+    # Try relative import first
+    from .config import RUN_EVERY_N_MINUTES, RUN_EVEN_WHEN_MARKET_IS_CLOSED, FORCE_MARKET_OPEN, REBALANCE_SCHEDULE
+except ImportError:
+    # Fallback to direct import
+    import config as trading_config
+    RUN_EVERY_N_MINUTES = trading_config.RUN_EVERY_N_MINUTES
+    RUN_EVEN_WHEN_MARKET_IS_CLOSED = trading_config.RUN_EVEN_WHEN_MARKET_IS_CLOSED
+    FORCE_MARKET_OPEN = trading_config.FORCE_MARKET_OPEN
+    REBALANCE_SCHEDULE = trading_config.REBALANCE_SCHEDULE
 
 
 def get_eastern_time() -> datetime:
