@@ -51,6 +51,27 @@ async def root():
     """Health check endpoint"""
     return {"message": "Trading System API is running", "timestamp": datetime.now().isoformat()}
 
+@app.get("/debug/environment")
+async def debug_environment():
+    """Debug endpoint to check environment variables"""
+    import os
+    
+    env_vars = {
+        "RAILWAY_ENVIRONMENT_NAME": os.getenv("RAILWAY_ENVIRONMENT_NAME"),
+        "RENDER": os.getenv("RENDER"),
+        "PORT": os.getenv("PORT"),
+        "POLYGON_API_KEY": "***" if os.getenv("POLYGON_API_KEY") else None,
+        "OPENAI_API_KEY": "***" if os.getenv("OPENAI_API_KEY") else None,
+        "ALPHAVANTAGE_API_KEY": "***" if os.getenv("ALPHAVANTAGE_API_KEY") else None,
+        "working_directory": os.getcwd(),
+    }
+    
+    return {
+        "environment_variables": env_vars,
+        "should_start_trading": bool(os.getenv("RAILWAY_ENVIRONMENT_NAME") or os.getenv("RENDER")),
+        "all_env_keys": [k for k in os.environ.keys() if "RAILWAY" in k or "RENDER" in k]
+    }
+
 @app.get("/debug/database")
 async def debug_database():
     """Debug endpoint to check database status"""
