@@ -72,7 +72,7 @@ if __name__ == "__main__":
                 import trading_floor
                 print("📊 Trading floor imported successfully")
                 print("🚀 Starting trading floor main loop...")
-                asyncio.run(trading_floor.main())
+                asyncio.run(trading_floor.run_trading_floor())
             except ImportError as e:
                 print(f"❌ Import error in trading floor: {e}")
                 import traceback
