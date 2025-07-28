@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { apiClient } from '../services/api';
 
 interface CandlestickChartProps {
   symbol?: string;
@@ -24,8 +25,7 @@ export const CandlestickChart = ({ symbol = 'SPY' }: CandlestickChartProps) => {
     const fetchMarketData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:8000/api/market/${symbol}?timeframe=day&limit=30`);
-        const data = await response.json();
+        const data = await apiClient.getMarketData(symbol, 'day', 30);
         if (data.data) {
           setMarketData(data.data);
         }
