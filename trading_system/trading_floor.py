@@ -359,18 +359,18 @@ Make only ONE decision per response. Focus on quality over quantity.
                 content = response.choices[0].message.content.strip()
                 
                 # Handle JSON wrapped in markdown code blocks
-                if content.startswith("```") and content.endswith("```"):
-                    # Extract JSON from markdown code block
-                    lines = content.split('\n')
-                    json_lines = []
-                    in_json = False
-                    for line in lines:
-                        if line.startswith('```'):
-                            in_json = not in_json
-                            continue
-                        if in_json:
-                            json_lines.append(line)
-                    content = '\n'.join(json_lines)
+                if "```json" in content:
+                    import re
+                    # Use regex to extract JSON block more reliably
+                    json_match = re.search(r'```json\s*\n(.*?)\n```', content, re.DOTALL)
+                    if json_match:
+                        content = json_match.group(1).strip()
+                    else:
+                        # Fallback: find first JSON object
+                        json_start = content.find('{')
+                        json_end = content.rfind('}') + 1
+                        if json_start != -1 and json_end > json_start:
+                            content = content[json_start:json_end]
                 
                 decision_data = json.loads(content)
                 print(f"🎯 {self.name.title()}: Initial decision: {decision_data.get('decision')} {decision_data.get('symbol', 'N/A')}")
