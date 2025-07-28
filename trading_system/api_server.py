@@ -60,6 +60,7 @@ async def debug_environment():
         "RAILWAY_ENVIRONMENT_NAME": os.getenv("RAILWAY_ENVIRONMENT_NAME"),
         "RENDER": os.getenv("RENDER"),
         "PORT": os.getenv("PORT"),
+        "DATABASE_URL": "***" if os.getenv("DATABASE_URL") else None,
         "POLYGON_API_KEY": "***" if os.getenv("POLYGON_API_KEY") else None,
         "OPENAI_API_KEY": "***" if os.getenv("OPENAI_API_KEY") else None,
         "ALPHAVANTAGE_API_KEY": "***" if os.getenv("ALPHAVANTAGE_API_KEY") else None,
@@ -76,55 +77,69 @@ async def debug_environment():
 async def debug_database():
     """Debug endpoint to check database status"""
     import os
-    import sqlite3
+    from database import Database
+    from db_config import DATABASE_PATH
     
-    # Check if database file exists
-    db_exists = os.path.exists("trading_system.db")
-    db_size = os.path.getsize("trading_system.db") if db_exists else 0
-    
-    # Check tables and row counts
-    tables_info = {}
-    if db_exists:
+    # Use our Database class to check status
+    try:
+        db = Database(DATABASE_PATH)
+        database_type = "PostgreSQL" if db.use_postgresql else "SQLite"
+        database_url_present = bool(db.database_url)
+        
+        # Check tables and row counts
+        tables_info = {}
         try:
-            conn = sqlite3.connect("trading_system.db")
-            cursor = conn.cursor()
-            
-            # Get all tables
-            cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-            tables = cursor.fetchall()
-            
-            for table in tables:
-                table_name = table[0]
-                cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
-                count = cursor.fetchone()[0]
-                tables_info[table_name] = count
+            with db.get_connection() as conn:
+                cursor = conn.cursor()
                 
-            conn.close()
+                # Get all tables (different query for PostgreSQL vs SQLite)
+                if db.use_postgresql:
+                    cursor.execute("""
+                        SELECT table_name FROM information_schema.tables 
+                        WHERE table_schema = 'public'
+                    """)
+                else:
+                    cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+                tables = cursor.fetchall()
+            
+                for table in tables:
+                    table_name = table[0]
+                    cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+                    count = cursor.fetchone()[0]
+                    tables_info[table_name] = count
+                    
         except Exception as e:
             tables_info["error"] = str(e)
     
-    # Also check trader_accounts data
-    trader_data = {}
-    if db_exists and "trader_accounts" in tables_info:
+        # Also check trader_accounts data
+        trader_data = {}
         try:
-            conn = sqlite3.connect("trading_system.db")
-            cursor = conn.cursor()
-            cursor.execute("SELECT trader_name, balance, holdings FROM trader_accounts")
-            rows = cursor.fetchall()
-            for row in rows:
-                trader_data[row[0]] = {"balance": row[1], "holdings": row[2]}
-            conn.close()
+            with db.get_connection() as conn:
+                cursor = conn.cursor()
+                if db.use_postgresql:
+                    cursor.execute("SELECT trader_name, balance, holdings FROM trader_accounts")
+                else:
+                    cursor.execute("SELECT trader_name, balance, holdings FROM trader_accounts")
+                rows = cursor.fetchall()
+                for row in rows:
+                    trader_data[row[0]] = {"balance": row[1], "holdings": row[2]}
         except Exception as e:
             trader_data["error"] = str(e)
-    
-    return {
-        "database_exists": db_exists,
-        "database_size_bytes": db_size,
-        "working_directory": os.getcwd(),
-        "files_in_directory": os.listdir("."),
-        "tables": tables_info,
-        "trader_data": trader_data
-    }
+        
+        return {
+            "database_type": database_type,
+            "database_url_present": database_url_present,
+            "database_path": DATABASE_PATH,
+            "working_directory": os.getcwd(),
+            "tables": tables_info,
+            "trader_data": trader_data
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "database_type": "Unknown",
+            "database_url_present": False
+        }
 
 @app.get("/api/traders")
 async def get_traders():
