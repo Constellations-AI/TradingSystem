@@ -105,6 +105,12 @@ class Account(BaseModel):
                 if result:
                     balance, strategy, holdings_json, transactions_json, portfolio_json = result
                     
+                    # Debug what we actually got from PostgreSQL
+                    print(f"🔍 Raw database values for {name}:")
+                    print(f"   holdings_json: {repr(holdings_json)}")
+                    print(f"   transactions_json: {repr(transactions_json)}")
+                    print(f"   portfolio_json: {repr(portfolio_json)}")
+                    
                     # Parse JSON fields with better NULL handling
                     try:
                         # Handle PostgreSQL NULL values and empty strings
