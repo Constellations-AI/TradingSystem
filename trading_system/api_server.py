@@ -184,6 +184,34 @@ async def get_trader_raw_data(trader_name: str):
     except Exception as e:
         return {"error": str(e)}
 
+@app.get("/debug/test-save/{trader_name}")
+async def test_save_data(trader_name: str):
+    """Test saving and immediately retrieving data"""
+    try:
+        from accounts import get_trader_account
+        
+        # Get account
+        account = get_trader_account(trader_name.lower())
+        original_balance = account.balance
+        
+        # Modify it slightly
+        account.balance = account.balance - 1.0
+        
+        # Save it
+        account.save()
+        
+        # Load a fresh copy
+        fresh_account = get_trader_account(trader_name.lower())
+        
+        return {
+            "original_balance": original_balance,
+            "modified_balance": account.balance,
+            "fresh_account_balance": fresh_account.balance,
+            "save_worked": fresh_account.balance == account.balance
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
 @app.get("/api/traders/{trader_name}/portfolio")
 async def get_trader_portfolio(trader_name: str):
     """Get trader's current portfolio"""
