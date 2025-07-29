@@ -39,6 +39,7 @@ class Database:
             
             if self.use_postgresql:
                 print(f"🐘 Using PostgreSQL database")
+                print(f"   Ignoring SQLite path: {db_path}")
             else:
                 self.db_path = db_path
                 print(f"📂 Using SQLite database at {db_path}")
@@ -46,8 +47,11 @@ class Database:
             self.init_database()
             Database._initialized = True
         else:
-            # Just set the path without reinitializing
-            if not self.use_postgresql:
+            # Set database type without reinitializing
+            if self.use_postgresql:
+                # Still using PostgreSQL, ignore the path
+                pass
+            else:
                 self.db_path = db_path
     
     def init_database(self):
