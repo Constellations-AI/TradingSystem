@@ -104,7 +104,12 @@ class Account(BaseModel):
                 print(f"🔍 Database query result for {name}: {result}")
                 
                 if result:
-                    balance, strategy, holdings_json, transactions_json, portfolio_json = result
+                    # PostgreSQL returns RealDictRow, access by key not position
+                    balance = result['balance']
+                    strategy = result['strategy'] 
+                    holdings_json = result['holdings']
+                    transactions_json = result['transactions']
+                    portfolio_json = result['portfolio_history']
                     
                     # Debug what we actually got from PostgreSQL
                     print(f"🔍 Raw database values for {name}:")
