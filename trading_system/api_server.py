@@ -152,6 +152,38 @@ async def get_traders():
         ]
     }
 
+@app.get("/debug/traders/{trader_name}/raw")
+async def get_trader_raw_data(trader_name: str):
+    """Debug endpoint to see raw account data without price filtering"""
+    try:
+        account = get_trader_account(trader_name.lower())
+        return {
+            "name": account.name,
+            "balance": account.balance,
+            "raw_holdings": dict(account.holdings),
+            "transaction_count": len(account.transactions),
+            "last_transaction": account.transactions[-1].model_dump() if account.transactions else None,
+            "portfolio_history_count": len(account.portfolio_value_time_series)
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/debug/traders/{trader_name}/raw")
+async def get_trader_raw_data(trader_name: str):
+    """Debug endpoint to see raw account data"""
+    try:
+        account = get_trader_account(trader_name.lower())
+        return {
+            "name": account.name,
+            "balance": account.balance,
+            "raw_holdings": dict(account.holdings),
+            "transaction_count": len(account.transactions),
+            "last_transaction": account.transactions[-1].model_dump() if account.transactions else None,
+            "portfolio_history_count": len(account.portfolio_value_time_series)
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
 @app.get("/api/traders/{trader_name}/portfolio")
 async def get_trader_portfolio(trader_name: str):
     """Get trader's current portfolio"""

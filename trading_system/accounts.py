@@ -33,22 +33,17 @@ def get_closing_price(symbol: str) -> float:
 def get_current_price(symbol: str) -> float:
     """Get current market price for a symbol using Polygon API"""
     try:
-        # Import here to avoid circular imports
-        from trading_floor import is_market_open
-        
-        # Use closing price when market is closed for stable P&L
-        if not is_market_open():
-            return get_closing_price(symbol)
-        
-        # Use live prices during market hours
+        # Always use last trade price - works regardless of market hours
         polygon = PolygonClient()
-        quote_data = polygon.get_last_quote(symbol)
         trade_data = polygon.get_last_trade(symbol)
         
-        # Use last trade price if available, otherwise midpoint of bid/ask
+        # Use last trade price if available
         if trade_data.get("status") == "OK" and trade_data.get("results"):
             return trade_data["results"].get("p", 0)
-        elif quote_data.get("status") == "OK" and quote_data.get("results"):
+        
+        # Fallback to quote data if trade data unavailable
+        quote_data = polygon.get_last_quote(symbol)
+        if quote_data.get("status") == "OK" and quote_data.get("results"):
             bid = quote_data["results"].get("p", 0)
             ask = quote_data["results"].get("P", 0)
             if bid > 0 and ask > 0:
