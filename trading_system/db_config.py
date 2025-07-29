@@ -9,9 +9,14 @@ from pathlib import Path
 def get_database_path() -> str:
     """Get the appropriate database path based on environment"""
     
-    # Check if running on Railway (or other cloud platform)
+    # If PostgreSQL is available, we don't need SQLite paths
+    if os.getenv("DATABASE_URL"):
+        print("🐘 PostgreSQL detected - using DATABASE_URL, ignoring SQLite paths")
+        return "unused_postgresql.db"  # Dummy path that won't be used
+    
+    # Check if running on Railway (or other cloud platform) - SQLite fallback
     if os.getenv("RAILWAY_ENVIRONMENT_NAME") or os.getenv("RENDER"):
-        # Use persistent volume path for production
+        # Use persistent volume path for production SQLite
         persistent_db_path = "/data/trading_system.db"
         local_db_path = "trading_system.db"
         

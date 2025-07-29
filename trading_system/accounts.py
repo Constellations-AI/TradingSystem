@@ -105,11 +105,12 @@ class Account(BaseModel):
                 if result:
                     balance, strategy, holdings_json, transactions_json, portfolio_json = result
                     
-                    # Parse JSON fields
+                    # Parse JSON fields with better NULL handling
                     try:
-                        holdings = json.loads(holdings_json) if holdings_json else {}
-                        transactions_data = json.loads(transactions_json) if transactions_json else []
-                        portfolio_history = json.loads(portfolio_json) if portfolio_json else []
+                        # Handle PostgreSQL NULL values and empty strings
+                        holdings = json.loads(holdings_json) if holdings_json and holdings_json.strip() else {}
+                        transactions_data = json.loads(transactions_json) if transactions_json and transactions_json.strip() else []
+                        portfolio_history = json.loads(portfolio_json) if portfolio_json and portfolio_json.strip() else []
                         
                         # Convert transaction dicts back to Transaction objects
                         transactions = [Transaction(**t) for t in transactions_data]
