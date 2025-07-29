@@ -13,7 +13,7 @@ import sys
 def get_system_url():
     """Get the system URL - try Railway first, then local"""
     # You can set this to your Railway URL
-    railway_url = "https://your-app.railway.app"  # Replace with actual URL
+    railway_url = "https://tradingsystem-production.up.railway.app"  # Your actual Railway URL
     local_url = "http://localhost:8000"
     
     # Try Railway first
