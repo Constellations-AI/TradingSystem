@@ -16,3 +16,4 @@ pydantic
 pytz
 langsmith
 psycopg2-binary
+psutil

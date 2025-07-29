@@ -4,7 +4,8 @@ FastAPI server to serve trading data to React frontend
 """
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from accounts import get_trader_account
 from data.polygon import PolygonClient
 from datetime import datetime, timedelta
@@ -452,6 +453,234 @@ async def get_trading_summary():
     except Exception as e:
         logger.error(f"Error getting trading summary: {e}")
         raise HTTPException(status_code=500, detail="Error generating trading summary")
+
+@app.get("/api/system/performance")
+async def get_system_performance():
+    """Get comprehensive system performance metrics"""
+    try:
+        from database import Database
+        from db_config import DATABASE_PATH
+        from datetime import datetime, timedelta
+        
+        # Get database instance
+        db = Database(DATABASE_PATH)
+        
+        # Calculate time periods
+        now = datetime.now()
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        hour_ago = now - timedelta(hours=1)
+        
+        performance_data = {
+            "timestamp": now.isoformat(),
+            "database_type": "PostgreSQL" if db.use_postgresql else "SQLite",
+            "traders": {},
+            "system_metrics": {
+                "total_traders": 0,
+                "active_traders_today": 0,
+                "total_trades_today": 0,
+                "total_portfolio_value": 0,
+                "total_pnl": 0,
+                "average_pnl": 0
+            }
+        }
+        
+        # Get detailed trader performance
+        traders = ["warren", "camillo", "pavel"]
+        active_today = 0
+        total_trades_today = 0
+        total_portfolio = 0
+        total_pnl = 0
+        
+        for trader_name in traders:
+            try:
+                account = get_trader_account(trader_name)
+                portfolio_value = account.calculate_portfolio_value()
+                pnl = portfolio_value - 10000  # Starting balance
+                
+                # Count trades today
+                trades_today = sum(1 for tx in account.transactions 
+                                 if tx.timestamp.startswith(today_start.strftime("%Y-%m-%d")))
+                
+                # Recent activity (last hour)
+                recent_updates = [update for update in account.portfolio_value_time_series 
+                                if len(update) >= 2 and update[0] >= hour_ago.strftime("%Y-%m-%d %H:%M:%S")]
+                
+                # Latest transaction
+                last_trade = None
+                if account.transactions:
+                    last_tx = account.transactions[-1]
+                    last_trade = {
+                        "symbol": last_tx.symbol,
+                        "quantity": last_tx.quantity,
+                        "price": last_tx.price,
+                        "timestamp": last_tx.timestamp,
+                        "side": "BUY" if last_tx.quantity > 0 else "SELL"
+                    }
+                
+                trader_data = {
+                    "portfolio_value": round(portfolio_value, 2),
+                    "cash_balance": round(account.balance, 2),
+                    "pnl": round(pnl, 2),
+                    "pnl_percent": round((pnl / 10000) * 100, 2),
+                    "holdings": dict(account.holdings),
+                    "total_trades": len(account.transactions),
+                    "trades_today": trades_today,
+                    "recent_updates_count": len(recent_updates),
+                    "last_trade": last_trade,
+                    "is_active_today": trades_today > 0
+                }
+                
+                performance_data["traders"][trader_name] = trader_data
+                
+                # Aggregate metrics
+                if trades_today > 0:
+                    active_today += 1
+                total_trades_today += trades_today
+                total_portfolio += portfolio_value
+                total_pnl += pnl
+                
+            except Exception as e:
+                logger.error(f"Error getting performance for {trader_name}: {e}")
+                performance_data["traders"][trader_name] = {"error": str(e)}
+        
+        # Update system metrics
+        performance_data["system_metrics"].update({
+            "total_traders": len(traders),
+            "active_traders_today": active_today,
+            "total_trades_today": total_trades_today,
+            "total_portfolio_value": round(total_portfolio, 2),
+            "total_pnl": round(total_pnl, 2),
+            "average_pnl": round(total_pnl / len(traders), 2) if traders else 0
+        })
+        
+        return performance_data
+        
+    except Exception as e:
+        logger.error(f"Error getting system performance: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting system performance: {str(e)}")
+
+@app.get("/api/system/health")
+async def get_system_health():
+    """Get system health status"""
+    try:
+        from database import Database
+        from db_config import DATABASE_PATH
+        import psutil
+        import os
+        
+        db = Database(DATABASE_PATH)
+        
+        health_data = {
+            "timestamp": datetime.now().isoformat(),
+            "status": "healthy",
+            "database": {
+                "type": "PostgreSQL" if db.use_postgresql else "SQLite",
+                "url_present": bool(db.database_url) if hasattr(db, 'database_url') else False,
+                "connection_test": "unknown"
+            },
+            "api_server": {
+                "status": "running",
+                "polygon_client": polygon_client is not None
+            },
+            "system": {
+                "cpu_percent": psutil.cpu_percent(),
+                "memory_percent": psutil.virtual_memory().percent,
+                "disk_percent": psutil.disk_usage('/').percent
+            }
+        }
+        
+        # Test database connection
+        try:
+            with db.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT 1")
+                health_data["database"]["connection_test"] = "success"
+        except Exception as e:
+            health_data["database"]["connection_test"] = f"failed: {str(e)}"
+            health_data["status"] = "degraded"
+        
+        return health_data
+        
+    except Exception as e:
+        logger.error(f"Error getting system health: {e}")
+        return {
+            "timestamp": datetime.now().isoformat(),
+            "status": "error", 
+            "error": str(e)
+        }
+
+@app.get("/api/system/live-activity")
+async def get_live_activity():
+    """Get recent trading activity across all traders"""
+    try:
+        from datetime import datetime, timedelta
+        
+        # Get activity from last 30 minutes
+        cutoff_time = datetime.now() - timedelta(minutes=30)
+        cutoff_str = cutoff_time.strftime("%Y-%m-%d %H:%M:%S")
+        
+        activity_data = {
+            "timestamp": datetime.now().isoformat(),
+            "cutoff_time": cutoff_str,
+            "recent_trades": [],
+            "recent_portfolio_updates": []
+        }
+        
+        traders = ["warren", "camillo", "pavel"]
+        
+        for trader_name in traders:
+            try:
+                account = get_trader_account(trader_name)
+                
+                # Get recent trades
+                for tx in account.transactions:
+                    if tx.timestamp >= cutoff_str:
+                        activity_data["recent_trades"].append({
+                            "trader": trader_name,
+                            "timestamp": tx.timestamp,
+                            "symbol": tx.symbol,
+                            "side": "BUY" if tx.quantity > 0 else "SELL",
+                            "quantity": abs(tx.quantity),
+                            "price": tx.price,
+                            "total": abs(tx.total())
+                        })
+                
+                # Get recent portfolio updates
+                for timestamp, value in account.portfolio_value_time_series:
+                    if timestamp >= cutoff_str:
+                        activity_data["recent_portfolio_updates"].append({
+                            "trader": trader_name,
+                            "timestamp": timestamp,
+                            "portfolio_value": value
+                        })
+                        
+            except Exception as e:
+                logger.error(f"Error getting activity for {trader_name}: {e}")
+        
+        # Sort by timestamp
+        activity_data["recent_trades"].sort(key=lambda x: x["timestamp"], reverse=True)
+        activity_data["recent_portfolio_updates"].sort(key=lambda x: x["timestamp"], reverse=True)
+        
+        return activity_data
+        
+    except Exception as e:
+        logger.error(f"Error getting live activity: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting live activity: {str(e)}")
+
+@app.get("/monitor", response_class=HTMLResponse)
+async def get_monitor_dashboard():
+    """Serve the monitoring dashboard"""
+    try:
+        with open("dashboard.html", "r") as f:
+            return HTMLResponse(content=f.read())
+    except FileNotFoundError:
+        return HTMLResponse(content="""
+        <html><body>
+        <h1>Monitor Dashboard Not Found</h1>
+        <p>The dashboard.html file is missing. Please ensure it exists in the same directory as the API server.</p>
+        <p><a href="/docs">API Documentation</a></p>
+        </body></html>
+        """)
 
 if __name__ == "__main__":
     import uvicorn
