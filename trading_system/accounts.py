@@ -106,25 +106,31 @@ class Account(BaseModel):
                     balance, strategy, holdings_json, transactions_json, portfolio_json = result
                     
                     # Parse JSON fields
-                    holdings = json.loads(holdings_json) if holdings_json else {}
-                    transactions_data = json.loads(transactions_json) if transactions_json else []
-                    portfolio_history = json.loads(portfolio_json) if portfolio_json else []
-                    
-                    # Convert transaction dicts back to Transaction objects
-                    transactions = [Transaction(**t) for t in transactions_data]
-                    
-                    return cls(
-                        name=name.lower(),
-                        balance=balance,
-                        strategy=strategy,
-                        holdings=holdings,
-                        transactions=transactions,
-                        portfolio_value_time_series=portfolio_history
-                    )
+                    try:
+                        holdings = json.loads(holdings_json) if holdings_json else {}
+                        transactions_data = json.loads(transactions_json) if transactions_json else []
+                        portfolio_history = json.loads(portfolio_json) if portfolio_json else []
+                        
+                        # Convert transaction dicts back to Transaction objects
+                        transactions = [Transaction(**t) for t in transactions_data]
+                        
+                        print(f"✅ Loaded existing account for {name}: {len(transactions)} transactions, {len(holdings)} holdings")
+                        
+                        return cls(
+                            name=name.lower(),
+                            balance=balance,
+                            strategy=strategy,
+                            holdings=holdings,
+                            transactions=transactions,
+                            portfolio_value_time_series=portfolio_history
+                        )
+                    except json.JSONDecodeError as json_err:
+                        print(f"⚠️ JSON decode error for {name}, will create new account: {json_err}")
         except Exception as e:
-            print(f"Note: Creating new account for {name} (previous data not found: {e})")
+            print(f"⚠️ Database error loading {name}: {e}")
         
         # Create default account data
+        print(f"🆕 Creating new account for {name} with ${INITIAL_BALANCE}")
         account = cls(
             name=name.lower(),
             balance=INITIAL_BALANCE,
