@@ -101,6 +101,7 @@ class Account(BaseModel):
                         (name.lower(),)
                     )
                 result = cursor.fetchone()
+                print(f"🔍 Database query result for {name}: {result}")
                 
                 if result:
                     balance, strategy, holdings_json, transactions_json, portfolio_json = result
