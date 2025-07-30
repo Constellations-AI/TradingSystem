@@ -278,15 +278,56 @@ class Trader:
         account_report = self.account.report()
         current_holdings = list(self.account.holdings.keys())
         
-        # Check if we need to build portfolio
+        # Check if we need to build or trim portfolio
         portfolio_building_mode = self.needs_portfolio_building()
+        portfolio_trimming_mode = self.needs_portfolio_trimming()
         
-        if portfolio_building_mode:
+        # Portfolio targets for prompt display
+        portfolio_targets = {
+            "warren": 10,
+            "camillo": 10,
+            "pavel": 3
+        }
+        target_stocks = portfolio_targets.get(self.name, 5)
+        
+        if portfolio_trimming_mode:
+            prompt = f"""
+{self.strategy}
+
+🎯 PORTFOLIO TRIMMING MODE:
+You currently have {len(current_holdings)} stocks but your target is {target_stocks} stocks total.
+Current holdings: {current_holdings}
+
+MARKET INTELLIGENCE:
+{market_intel}
+
+TECHNICAL ANALYSIS:
+{tech_analysis}
+
+CURRENT ACCOUNT STATUS:
+{account_report}
+
+INSTRUCTIONS:
+You have TOO MANY positions! You need to SELL some stocks to reach your target portfolio size.
+Choose the WEAKEST performing or least strategic position to sell.
+
+Respond with a JSON object containing:
+{{
+    "decision": "SELL",
+    "symbol": "TICKER" (must be from your current holdings),
+    "quantity": number (how many shares to sell),
+    "rationale": "Why this is the best position to trim",
+    "conviction": "HIGH" or "MEDIUM" or "LOW"
+}}
+
+Focus on reducing portfolio size to optimal levels!
+"""
+        elif portfolio_building_mode:
             prompt = f"""
 {self.strategy}
 
 🏗️ PORTFOLIO BUILDING MODE:
-You currently have {len(current_holdings)} stocks but need {10 if self.name in ['warren', 'cathie'] else 3} stocks total.
+You currently have {len(current_holdings)} stocks but need {target_stocks} stocks total.
 Current holdings: {current_holdings}
 
 MARKET INTELLIGENCE:
@@ -571,18 +612,31 @@ Make only ONE decision per response. Focus on quality over quantity.
         portfolio_targets = {
             "warren": 10,   # Warren likes a diversified value portfolio
             "camillo": 10,   # Camillo focuses on innovation themes across sectors  
-            "flash": 3      # Pavel is a day trader with fewer positions
+            "pavel": 3      # Pavel is a day trader with fewer positions
         }
         
         target_stocks = portfolio_targets.get(self.name, 5)
         current_stocks = len(self.account.holdings)
         
         return current_stocks < target_stocks
+    
+    def needs_portfolio_trimming(self) -> bool:
+        """Check if trader has too many positions and needs to sell some"""
+        portfolio_targets = {
+            "warren": 10,   # Warren likes a diversified value portfolio
+            "camillo": 10,   # Camillo focuses on innovation themes across sectors  
+            "pavel": 3      # Pavel is a day trader with fewer positions
+        }
+        
+        target_stocks = portfolio_targets.get(self.name, 5)
+        current_stocks = len(self.account.holdings)
+        
+        return current_stocks > target_stocks
 
     async def run_portfolio_building_cycle(self) -> str:
         """Keep researching and buying stocks until portfolio target is reached"""
         try:
-            print(f"🏗️ {self.name.title()}: PORTFOLIO BUILDING MODE - Need {10 if self.name in ['warren', 'cathie'] else 3} stocks, have {len(self.account.holdings)}")
+            print(f"🏗️ {self.name.title()}: PORTFOLIO BUILDING MODE - Need {10 if self.name in ['warren', 'camillo'] else 3} stocks, have {len(self.account.holdings)}")
             
             max_attempts = 3  # Try up to 3 times per cycle
             trades_made = 0
@@ -618,11 +672,55 @@ Make only ONE decision per response. Focus on quality over quantity.
         except Exception as e:
             return f"{self.name}: Error during portfolio building - {e}"
 
+    async def run_portfolio_trimming_cycle(self) -> str:
+        """Keep selling stocks until portfolio target is reached"""
+        try:
+            print(f"🎯 {self.name.title()}: PORTFOLIO TRIMMING MODE - Target {3 if self.name == 'pavel' else 10} stocks, have {len(self.account.holdings)}")
+            
+            max_attempts = 3  # Try up to 3 times per cycle
+            trades_made = 0
+            
+            for attempt in range(max_attempts):
+                if not self.needs_portfolio_trimming():
+                    break
+                    
+                print(f"🔍 {self.name.title()}: Portfolio trimming attempt {attempt + 1}/{max_attempts}")
+                
+                # Setup agents if not already done  
+                await self.setup_agents()
+                
+                # Use the existing make_trading_decision - it now has portfolio trimming logic
+                decision = await self.make_trading_decision(is_rebalancing=False)
+                
+                if decision.get('decision') == 'SELL':
+                    result = await self.execute_decision(decision)
+                    trades_made += 1
+                    print(f"✅ {self.name.title()}: Portfolio trimming trade - {result}")
+                else:
+                    print(f"⏭️ {self.name.title()}: No sell decision this cycle")
+                
+                # Small delay between attempts
+                await asyncio.sleep(1)
+            
+            portfolio_size = len(self.account.holdings)
+            if self.needs_portfolio_trimming():
+                return f"{self.name}: Portfolio trimming - made {trades_made} trades. Portfolio: {portfolio_size} stocks (still trimming)"
+            else:
+                return f"{self.name}: 🎯 Portfolio target reached! {portfolio_size} stocks. Made {trades_made} trades this cycle."
+                
+        except Exception as e:
+            return f"{self.name}: Error during portfolio trimming - {e}"
+
     async def run(self) -> str:
         """Run one trading cycle for this trader"""
         try:
+            # Check if any trader needs to trim their portfolio first (higher priority)
+            if self.needs_portfolio_trimming():
+                # All traders get dedicated trimming cycles
+                return await self.run_portfolio_trimming_cycle()
+            
             # Check if any trader needs to build their portfolios
-            if self.needs_portfolio_building():
+            elif self.needs_portfolio_building():
                 # Warren and Camillo get dedicated building cycles
                 if self.name in ['warren', 'camillo']:
                     return await self.run_portfolio_building_cycle()
