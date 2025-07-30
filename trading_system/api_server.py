@@ -149,7 +149,7 @@ async def get_traders():
         "traders": [
             {"id": 1, "name": "warren", "display_name": "Warren", "color": "trading-blue"},
             {"id": 4, "name": "camillo", "display_name": "Camillo", "color": "trading-yellow"},
-            {"id": 3, "name": "flash", "display_name": "Flash", "color": "trading-purple"}
+            {"id": 3, "name": "pavel", "display_name": "Pavel", "color": "trading-purple"}
         ]
     }
 
@@ -426,7 +426,7 @@ async def _get_mock_market_data(symbol: str, limit: int = 30):
 async def get_trading_summary():
     """Get overall trading system summary"""
     try:
-        traders = ["warren", "camillo", "flash"]
+        traders = ["warren", "camillo", "pavel"]
         summary = {
             "total_portfolio_value": 0,
             "total_traders": len(traders),
@@ -485,7 +485,7 @@ async def get_system_performance():
         }
         
         # Get detailed trader performance
-        traders = ["warren", "camillo", "flash"]
+        traders = ["warren", "camillo", "pavel"]
         active_today = 0
         total_trades_today = 0
         total_portfolio = 0
@@ -626,7 +626,7 @@ async def get_live_activity():
             "recent_portfolio_updates": []
         }
         
-        traders = ["warren", "camillo", "flash"]
+        traders = ["warren", "camillo", "pavel"]
         
         for trader_name in traders:
             try:

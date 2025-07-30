@@ -265,10 +265,10 @@ class PavelTraderAgent(TraderPersonality):
         """Pavel's momentum-focused trading decision"""
         try:
             # Get market intelligence and detailed technical analysis
-            market_result = await self.market_intelligence.analyze("Give me my daily briefing", "flash")
+            market_result = await self.market_intelligence.analyze("Give me my daily briefing", "pavel")
             market_briefing = market_result.get('analysis', 'No briefing available') if market_result['status'] == 'success' else 'Briefing unavailable'
             tech_analysis = await self.technical_analysis.analyze_ticker(ticker, timeframe="1D", days=30)
-            tech_recommendation = await self.technical_analysis.get_trading_recommendation(ticker, "flash")
+            tech_recommendation = await self.technical_analysis.get_trading_recommendation(ticker, "pavel")
             
             # Pavel's decision-making prompt
             decision_prompt = f"""
@@ -363,7 +363,7 @@ def create_trader(personality: str) -> TraderPersonality:
     personalities = {
         'warren': WarrenBuffettAgent,
         'camillo': ChrisCamilloAgent,
-        'flash': PavelTraderAgent
+        'pavel': PavelTraderAgent
     }
     
     trader_class = personalities.get(personality.lower())
@@ -379,5 +379,5 @@ def get_all_traders() -> Dict[str, TraderPersonality]:
     return {
         'warren': WarrenBuffettAgent(),
         'camillo': ChrisCamilloAgent(),
-        'flash': PavelTraderAgent()
+        'pavel': PavelTraderAgent()
     }

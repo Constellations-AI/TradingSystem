@@ -12,5 +12,5 @@ FORCE_MARKET_OPEN = True  # TEMPORARY: Test if agents come back to life
 REBALANCE_SCHEDULE = {
     "warren": "daily",      # Once per day
     "camillo": "daily",     # Once per day  
-    "flash": "3x_daily"     # 3 times per day
+    "pavel": "3x_daily"     # 3 times per day
 }

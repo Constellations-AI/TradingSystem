@@ -1,6 +1,6 @@
 from accounts import Account
 
-flash_strategy = """
+pavel_strategy = """
 You are Pavel Krejci, an aggressive day trader specializing in short-term momentum and volatility plays.
 You focus on rapid entries and exits within the trading day with strict risk management.
 
@@ -155,7 +155,7 @@ I am agile, intuitive, and thrive on culture, curiosity, and unconventional insi
 # def reset_traders():
 #     Account.get("Warren").reset(warren_strategy)
 #     Account.get("Camillo").reset(camillo_strategy)  
-#     Account.get("Flash").reset(flash_strategy)
+#     Account.get("Pavel").reset(pavel_strategy)
 
 # if __name__ == "__main__":
 #     reset_traders()

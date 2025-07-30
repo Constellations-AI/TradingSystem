@@ -15,7 +15,7 @@ from accounts import get_trader_account
 from agents.market_intelligence_agent import MarketIntelligenceAgent
 from agents.technical_analysis_agent import TechnicalAnalysisAgent
 from agents.flash_trading_evaluator import create_flash_evaluator
-from agents.trader_personality import warren_strategy, flash_strategy, camillo_strategy
+from agents.trader_personality import warren_strategy, pavel_strategy, camillo_strategy
 from openai import AsyncOpenAI
 
 load_dotenv(override=True)
@@ -67,7 +67,7 @@ else:
     REBALANCE_SCHEDULE = {
         "warren": "daily",
         "camillo": "daily", 
-        "flash": "3x_daily"
+        "pavel": "3x_daily"
     }
     print(f"⚠️ Using fallback: FORCE_MARKET_OPEN={FORCE_MARKET_OPEN}")
 
@@ -208,7 +208,7 @@ class Trader:
             print(f"⚠️ {self.name.title()}: Error wrapping OpenAI client: {e}")
             self.openai = openai_client
         
-        # Flash gets a trading evaluator for discipline
+        # Pavel gets a trading evaluator for discipline
         self.flash_evaluator = None
         
         # Set strategy based on trader personality
@@ -219,7 +219,7 @@ class Trader:
         strategies = {
             "warren": warren_strategy,
             "camillo": camillo_strategy,
-            "flash": flash_strategy
+            "pavel": pavel_strategy
         }
         return strategies.get(self.name, "")
         
@@ -228,8 +228,8 @@ class Trader:
         await self.market_intelligence.setup()
         await self.technical_analysis.setup()
         
-        # Setup Flash evaluator if this is Flash
-        if self.name == "flash" and not self.flash_evaluator:
+        # Setup Flash evaluator if this is Pavel
+        if self.name == "pavel" and not self.flash_evaluator:
             self.flash_evaluator = await create_flash_evaluator()
         
     async def run_market_intelligence(self, query: str) -> str:
@@ -460,7 +460,7 @@ Make only ONE decision per response. Focus on quality over quantity.
                 }
             
             # Pavel's decisions go through the evaluator
-            if self.name == "flash" and self.flash_evaluator:
+            if self.name == "pavel" and self.flash_evaluator:
                 print(f"🔍 {self.name.title()}: Sending decision to evaluator...")
                 
                 # Prepare trading context for evaluator
@@ -628,7 +628,7 @@ Make only ONE decision per response. Focus on quality over quantity.
                     return await self.run_portfolio_building_cycle()
                 
                 # Pavel gets forced trading when portfolio building needed
-                elif self.name == 'flash':
+                elif self.name == 'pavel':
                     print(f"🏗️ {self.name.title()}: Portfolio building needed - forcing trade")
                     is_rebalancing = should_rebalance_now(self.name)
                     should_trade = True  # Force trading for portfolio building
@@ -680,7 +680,7 @@ Make only ONE decision per response. Focus on quality over quantity.
 
 def create_traders() -> List[Trader]:
     """Create all trader instances"""
-    trader_names = ["warren", "camillo", "flash"]
+    trader_names = ["warren", "camillo", "pavel"]
     return [Trader(name) for name in trader_names]
 
 

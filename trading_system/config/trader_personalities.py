@@ -36,7 +36,7 @@ TRADER_PERSONALITIES = {
         - Unconventional data sources and early indicators
         """
     },
-    "flash": {
+    "pavel": {
         "name": "Pavel Krejci",
         "style": "Day Trading", 
         "time_horizon": "Intraday (minutes to hours)",
@@ -75,7 +75,7 @@ def get_trader_personality(user_id: str) -> dict:
     Get trader personality configuration by user ID
     
     Args:
-        user_id: Trader identifier (warren, camillo, flash, general, or any external user ID)
+        user_id: Trader identifier (warren, camillo, pavel, general, or any external user ID)
     
     Returns:
         Dictionary containing trader personality configuration
