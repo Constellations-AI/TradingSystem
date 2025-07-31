@@ -61,7 +61,26 @@ if __name__ == "__main__":
     print("")
     
     # Start trading floor in background if in production
-    if os.getenv("RAILWAY_ENVIRONMENT_NAME") or os.getenv("RENDER"):
+    # Railway sets different environment variables: RAILWAY_ENVIRONMENT, RAILWAY_PROJECT_ID, etc.
+    is_railway = any([
+        os.getenv("RAILWAY_ENVIRONMENT_NAME"),
+        os.getenv("RAILWAY_ENVIRONMENT"), 
+        os.getenv("RAILWAY_PROJECT_ID"),
+        os.getenv("RAILWAY_SERVICE_ID")
+    ])
+    is_render = os.getenv("RENDER")
+    is_production = is_railway or is_render
+    
+    # Also allow manual override for testing
+    force_trading = os.getenv("FORCE_TRADING_FLOOR", "").lower() in ["true", "1", "yes"]
+    
+    print(f"🔍 Environment detection:")
+    print(f"   - Railway: {is_railway}")
+    print(f"   - Render: {is_render}")  
+    print(f"   - Force trading: {force_trading}")
+    print(f"   - Will start trading floor: {is_production or force_trading}")
+    
+    if is_production or force_trading:
         print("🏢 Starting trading agents in background...")
         import threading
         import asyncio
