@@ -790,25 +790,48 @@ async def run_trading_cycle():
     
     print(f"🚀 Starting trading cycle at {get_eastern_time().strftime('%Y-%m-%d %H:%M:%S ET')}")
     
+    # Memory monitoring
+    try:
+        import psutil
+        process = psutil.Process()
+        memory_mb = process.memory_info().rss / 1024 / 1024
+        print(f"💾 Memory usage: {memory_mb:.1f} MB")
+        
+        # Alert if memory usage is high (>500MB on Railway)
+        if memory_mb > 400:
+            print(f"⚠️ High memory usage detected: {memory_mb:.1f} MB")
+    except ImportError:
+        pass  # psutil not available, skip memory monitoring
+    except Exception as e:
+        print(f"⚠️ Memory monitoring error: {e}")
+    
     # Create all traders
     traders = create_traders()
     
     # Update portfolio value time series for all traders (for graph accuracy)
-    print("📊 Updating portfolio values for performance tracking...")
-    for trader in traders:
-        try:
-            trader.account.update_portfolio_value_series()
-        except Exception as e:
-            print(f"⚠️ Error updating portfolio value for {trader.name}: {e}")
+    # Only update every other cycle to reduce database writes
+    import random
+    if random.random() < 0.5:  # 50% chance to update portfolio values
+        print("📊 Updating portfolio values for performance tracking...")
+        for trader in traders:
+            try:
+                trader.account.update_portfolio_value_series()
+            except Exception as e:
+                print(f"⚠️ Error updating portfolio value for {trader.name}: {e}")
     
     # Run all traders in parallel (restored from before sequential fix)
     print("🤖 Starting all traders in parallel...")
-    results = await asyncio.gather(*[trader.run() for trader in traders])
-    
-    # Print results
-    for result in results:
-        if "Not scheduled" not in result:  # Only print active trading
-            print(f"✅ {result}")
+    try:
+        results = await asyncio.gather(*[trader.run() for trader in traders], return_exceptions=True)
+        
+        # Print results and handle exceptions
+        for i, result in enumerate(results):
+            if isinstance(result, Exception):
+                print(f"❌ Trader {traders[i].name} error: {result}")
+            elif "Not scheduled" not in str(result):  # Only print active trading
+                print(f"✅ {result}")
+    except Exception as e:
+        print(f"❌ Error in parallel trader execution: {e}")
 
 
 async def run_trading_floor():

@@ -340,13 +340,27 @@ class Account(BaseModel):
         # Avoid duplicate timestamps (only update if time changed)
         if not self.portfolio_value_time_series or self.portfolio_value_time_series[-1][0] != timestamp:
             self.portfolio_value_time_series.append((timestamp, portfolio_value))
+            
+            # Limit memory usage - keep only last 1000 entries (about 3-4 days of data)
+            if len(self.portfolio_value_time_series) > 1000:
+                self.portfolio_value_time_series = self.portfolio_value_time_series[-1000:]
+            
             self.save()
     
     def report(self) -> str:
         """ Return a JSON string representing the account. """
         portfolio_value = self.calculate_portfolio_value()
-        self.portfolio_value_time_series.append((datetime.now().strftime("%Y-%m-%d %H:%M:%S"), portfolio_value))
-        self.save()
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Avoid duplicate timestamps and limit memory usage
+        if not self.portfolio_value_time_series or self.portfolio_value_time_series[-1][0] != timestamp:
+            self.portfolio_value_time_series.append((timestamp, portfolio_value))
+            
+            # Limit memory usage - keep only last 1000 entries (about 3-4 days of data)
+            if len(self.portfolio_value_time_series) > 1000:
+                self.portfolio_value_time_series = self.portfolio_value_time_series[-1000:]
+            
+            self.save()
         
         pnl = self.calculate_profit_loss(portfolio_value)
         data = self.model_dump()

@@ -86,25 +86,39 @@ if __name__ == "__main__":
         import asyncio
         
         def run_trading_floor():
-            try:
-                print("🔄 Importing trading floor...")
-                import trading_floor
-                print("📊 Trading floor imported successfully")
-                print("🚀 Starting trading floor main loop...")
-                asyncio.run(trading_floor.run_trading_floor())
-            except ImportError as e:
-                print(f"❌ Import error in trading floor: {e}")
-                import traceback
-                print(f"❌ Import traceback: {traceback.format_exc()}")
-            except Exception as e:
-                print(f"❌ Trading floor runtime error: {e}")
-                import traceback
-                print(f"❌ Runtime traceback: {traceback.format_exc()}")
-                # Keep trying every 30 seconds
-                import time
-                time.sleep(30)
-                print("🔄 Retrying trading floor startup...")
-                run_trading_floor()
+            import time
+            max_retries = 3
+            retry_count = 0
+            
+            while retry_count < max_retries:
+                try:
+                    print(f"🔄 Trading floor startup attempt {retry_count + 1}/{max_retries}")
+                    print("🔄 Importing trading floor...")
+                    import trading_floor
+                    print("📊 Trading floor imported successfully")
+                    print("🚀 Starting trading floor main loop...")
+                    asyncio.run(trading_floor.run_trading_floor())
+                    break  # If we get here, trading floor exited normally
+                except ImportError as e:
+                    print(f"❌ Import error in trading floor: {e}")
+                    import traceback
+                    print(f"❌ Import traceback: {traceback.format_exc()}")
+                    retry_count += 1
+                except KeyboardInterrupt:
+                    print("🛑 Trading floor stopped by user")
+                    break
+                except Exception as e:
+                    print(f"❌ Trading floor runtime error: {e}")
+                    import traceback
+                    print(f"❌ Runtime traceback: {traceback.format_exc()}")
+                    retry_count += 1
+                    
+                    if retry_count < max_retries:
+                        print(f"🔄 Retrying in 30 seconds... ({retry_count}/{max_retries})")
+                        time.sleep(30)
+                    else:
+                        print("❌ Max retries reached, trading floor disabled")
+                        break
         
         # Start trading floor in a separate thread
         print("🧵 Creating trading thread...")
